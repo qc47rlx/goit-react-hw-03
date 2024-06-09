@@ -1,41 +1,50 @@
-import { useState } from 'react'
-// import reactLogo from './assets/react.svg'
-// import viteLogo from '/vite.svg'
-// import { useId } from "react";
+ import { useState, useEffect } from 'react'
+ import startContacts from '../components/Contact.json'
+ import ContactForm from "./ContactForm/ContactForm";
+ import SearchBox from "./SearchBox/SearchBox";
+ import ContactList from "./ContactList/ContactList";
 
+function App() {
+  const [filter, setFilter] = useState('');
 
-const App = () => {
-  const [values, setValues] = useState({
-    login: "",
-    password: ""
+  const [contacts, setContacts] = useState(() => {
+    const storageContact = window.localStorage.getItem("saveContact");
+    return storageContact !== null
+      ? JSON.parse(storageContact)
+      : startContacts;
   });
 
-  const handleChange = (evt) => {
-    setValues({
-      ...values,
-      [evt.target.name]: evt.target.value,
+  useEffect(() => {
+    window.localStorage.setItem("saveContact", JSON.stringify(contacts));
+  }, [contacts]);
+
+  const onDelete = (contactId) => {
+    setContacts((prevContacts) => {
+      return prevContacts.filter((contact) => contact.id !== contactId);
     });
   };
 
-   const handleSubmit = (evt) => {
-     evt.preventDefault();
-     
-    console.log(values);
+  const visibleContacts = contacts.filter((contact) =>
+   contact.name.toLowerCase().includes(filter.toLowerCase())
+  );
 
-     setValues({
-    login: "",
-    password: ""
+ 
+  const addContact =(newContact)=>{
+    setContacts((prevContact)=>{
+      return[...prevContact, newContact]     
     })
   }
 
   return (
-    <form onSubmit={handleSubmit}>
-      <input type="text" name="login" value={values.login} onChange={handleChange}></input>
-      <input type="password" name="password" value={values.password} onChange={handleChange}></input>
-      <button type="submit">Login</button>
-    </form>
+    <>
+      <div>
+        <h1>Phonebook</h1>
+        <ContactForm addContact={addContact} />
+        <SearchBox value={filter} onFilter={setFilter}/>       
+        <ContactList contacts={visibleContacts}  onDelete={onDelete}/>
+      </div>
+    </>
   );
 }
-
 
 export default App;
